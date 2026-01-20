@@ -3,8 +3,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
   EmbedBuilder,
-  TextChannel,
-  MessageActionRowComponentBuilder
+  TextChannel
 } from "discord.js";
 
 import { prisma } from "../db/prisma";
@@ -35,23 +34,29 @@ export async function createApprovalRequest(
     )
     .setFooter({ text: "Aprobación requerida (Head-Admins)" });
 
-  // ✅ FIX TS: usar MessageActionRowComponentBuilder
-  const row = new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(
+  // ✅ FIX: usamos 'any' para evitar guerras de tipos en TS (Railway incluido)
+  const row = new ActionRowBuilder<any>().addComponents(
     new ButtonBuilder()
       .setCustomId(`approve:${req.id}`)
       .setLabel("Aprobar")
       .setStyle(ButtonStyle.Success),
+
     new ButtonBuilder()
       .setCustomId(`reject:${req.id}`)
       .setLabel("Rechazar")
       .setStyle(ButtonStyle.Danger)
   );
 
+  // ✅ FIX: mandamos componentes como JSON para que incluya "type"
+  const components: any[] = [row.toJSON()];
+
   // ✅ Ping a todos los Head-Admins
   const heads = await listHeadAdmins();
-  const pingHeads = heads.length ? heads.map((id) => `<@${id}>`).join(" ") : "⚠️ No hay Head-Admins registrados.";
+  const pingHeads = heads.length
+    ? heads.map((id) => `<@${id}>`).join(" ")
+    : "⚠️ No hay Head-Admins registrados.";
 
-  // Preferencia: canal de aprobaciones
+  // ✅ Enviar al canal de aprobaciones (recomendado)
   if (settings.approvalChannelId) {
     const ch = await client.channels.fetch(settings.approvalChannelId).catch(() => null);
 
@@ -59,20 +64,21 @@ export async function createApprovalRequest(
       await (ch as TextChannel).send({
         content: `🔔 **Aprobación requerida:** ${pingHeads}`,
         embeds: [embed],
-        components: [row]
+        components
       });
+
       return req;
     }
   }
 
-  // Si no hay canal, manda DM a todos los Head-Admins
+  // ✅ Si no hay canal, enviar DM a todos los Head-Admins
   for (const id of heads) {
     try {
       const headUser = await client.users.fetch(id);
       await headUser.send({
-        content: `🔔 **Aprobación requerida** (${pingHeads})`,
+        content: `🔔 **Aprobación requerida:** ${pingHeads}`,
         embeds: [embed],
-        components: [row]
+        components
       });
     } catch {
       // ignore
