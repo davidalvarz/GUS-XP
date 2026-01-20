@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits } from "discord.js";
+import { Client, GatewayIntentBits, ActivityType } from "discord.js";
 import { settings } from "./config/settings";
 import { handleMessage } from "./handlers/message.handler";
 import { handleInteraction } from "./handlers/interaction.handler";
@@ -17,11 +17,21 @@ client.once("ready", async () => {
   console.log(`🤖 Sesión iniciada como: ${client.user?.tag}`);
   console.log(`📌 Prefix configurado: ${settings.prefix}`);
 
+  // ✅ Rich Presence: "Jugando a Utiliza !ayuda"
+  client.user?.setPresence({
+    activities: [
+      {
+        name: `Utiliza ${settings.prefix}ayuda`,
+        type: ActivityType.Playing
+      }
+    ],
+    status: "online"
+  });
+
   // ✅ Seed del OWNER como Head-Admin si no existe ninguno
   await seedFirstHeadAdmin();
 });
 
-// ✅ Aquí ahora pasamos (client, message)
 client.on("messageCreate", async (message) => {
   await handleMessage(client, message);
 });
