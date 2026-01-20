@@ -1,11 +1,12 @@
-export type RankEntry = {
-  className: string;
-  rankName: string;
-  minXp: number;
-};
+export const GENERAL_RANKS = [
+  "General mayor",
+  "Teniente general",
+  "Coronel general",
+  "General del ejercito",
+  "Mariscal de servicio"
+];
 
-export const CAREER_RANKS: RankEntry[] = [
-  // Tropas
+export const CAREER_RANKS = [
   { className: "Tropas", rankName: "Recluta", minXp: 0 },
   { className: "Tropas", rankName: "Soldado raso", minXp: 100 },
   { className: "Tropas", rankName: "Soldado", minXp: 250 },
@@ -13,28 +14,17 @@ export const CAREER_RANKS: RankEntry[] = [
   { className: "Tropas", rankName: "Cabo", minXp: 700 },
   { className: "Tropas", rankName: "Cabo primero", minXp: 1000 },
 
-  // Suboficiales
-  { className: "Suboficiales", rankName: "Sargento segundo", minXp: 1300 },
-  { className: "Suboficiales", rankName: "Sargento", minXp: 1700 },
-  { className: "Suboficiales", rankName: "Sargento primero", minXp: 2200 },
-  { className: "Suboficiales", rankName: "Sargento mayor", minXp: 2800 },
+  { className: "Suboficiales", rankName: "Sargento segundo", minXp: 1400 },
+  { className: "Suboficiales", rankName: "Sargento", minXp: 1900 },
+  { className: "Suboficiales", rankName: "Sargento primero", minXp: 2500 },
+  { className: "Suboficiales", rankName: "Sargento mayor", minXp: 3200 },
 
-  // Oficiales
-  { className: "Oficiales", rankName: "Teniente segundo", minXp: 3500 },
-  { className: "Oficiales", rankName: "Teniente", minXp: 4300 },
-  { className: "Oficiales", rankName: "Teniente primero", minXp: 5200 },
-  { className: "Oficiales", rankName: "Capitán", minXp: 6200 },
+  { className: "Oficiales", rankName: "Teniente segundo", minXp: 4000 },
+  { className: "Oficiales", rankName: "Teniente", minXp: 4900 },
+  { className: "Oficiales", rankName: "Teniente primero", minXp: 5900 },
+  { className: "Oficiales", rankName: "Capitan", minXp: 7000 },
 
-  // Oficiales Mayores
-  { className: "Oficiales mayores", rankName: "Mayor", minXp: 7400 },
-  { className: "Oficiales mayores", rankName: "Teniente coronel", minXp: 8800 },
-  { className: "Oficiales mayores", rankName: "Coronel", minXp: 10500 }
-];
-
-export const GENERAL_RANKS = [
-  "General mayor",
-  "Teniente general",
-  "Coronel general",
-  "General del ejército",
-  "Mariscal de servicio"
+  { className: "Oficiales mayores", rankName: "Mayor", minXp: 8300 },
+  { className: "Oficiales mayores", rankName: "Teniente coronel", minXp: 9800 },
+  { className: "Oficiales mayores", rankName: "Coronel", minXp: 11500 }
 ];

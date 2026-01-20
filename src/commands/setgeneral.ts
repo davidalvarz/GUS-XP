@@ -1,34 +1,54 @@
 import { prisma } from "../db/prisma";
-import { settings } from "../config/settings";
+import { requireHeadAdmin } from "../utils/guards";
 import { GENERAL_RANKS } from "../config/ranks";
-import { isWhitelistedAdmin } from "../utils/guards";
 
 export async function cmdSetGeneral(message: any, args: string[]) {
-  // Solo HEAD ADMIN o whitelist puede asignar general
-  if (!isWhitelistedAdmin(message.author.id, settings.headAdminId)) {
-    await message.reply("No estás autorizado para usar este comando.");
-    return;
-  }
+  const ok = await requireHeadAdmin(message);
+  if (!ok) return;
 
   const target = message.mentions.users.first();
   if (!target) {
-    await message.reply("Uso: `!setgeneral @usuario <rango>`");
-    await message.reply(`Rangos: ${GENERAL_RANKS.join(", ")}`);
+    await message.reply(
+      "Uso: `!setgeneral @usuario <rango>`\n\nEjemplo: `!setgeneral @Juan General mayor`"
+    );
     return;
   }
 
   const rankName = args.slice(1).join(" ").trim();
-  if (!GENERAL_RANKS.includes(rankName)) {
-    await message.reply("Rango inválido para Generales.");
-    await message.reply(`Rangos válidos: ${GENERAL_RANKS.join(", ")}`);
+  if (!rankName) {
+    await message.reply(
+      "Debes indicar el rango.\nEjemplo: `!setgeneral @Juan General mayor`"
+    );
+    return;
+  }
+
+  const validRank = GENERAL_RANKS.find(
+    (r) => r.toLowerCase() === rankName.toLowerCase()
+  );
+
+  if (!validRank) {
+    await message.reply(
+      "❌ Rango inválido.\nRangos válidos:\n" +
+        GENERAL_RANKS.map((r) => `• ${r}`).join("\n")
+    );
     return;
   }
 
   await prisma.userProfile.upsert({
     where: { discordId: target.id },
-    create: { discordId: target.id, isGeneral: true, generalRank: rankName, xp: 0 },
-    update: { isGeneral: true, generalRank: rankName, xp: 0 }
+    create: {
+      discordId: target.id,
+      xp: 0,
+      isGeneral: true,
+      generalRank: validRank
+    },
+    update: {
+      isGeneral: true,
+      generalRank: validRank
+    }
   });
 
-  await message.reply(`✅ ${target.username} ahora es **General**: **${rankName}** (XP bloqueada).`);
+  await message.reply(
+    `✅ Se asignó el rango **${validRank}** a <@${target.id}>.\n🔒 Este usuario ahora es **General** y **no recibirá XP**.`
+  );
 }
