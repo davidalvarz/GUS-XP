@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model UserProfile {
+  id            String  @id @default(cuid())
+  discordId     String  @unique
+  xp            Int     @default(0)
+
+  robloxUserId  String?
+  robloxName    String?
+
+  isGeneral     Boolean @default(false)
+  generalRank   String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model PendingXpRequest {
+  id           String   @id @default(cuid())
+  requesterId  String
+  targetId     String
+  amount       Int
+  type         String   // "ADD" | "REMOVE"
+  reason       String?
+  status       String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  createdAt    DateTime @default(now())
+}
+
+model StaffMember {
+  id        String   @id @default(cuid())
+  discordId String   @unique
+  role      String   // "ADMIN" | "HEAD_ADMIN"
+  createdAt DateTime @default(now())
+}
