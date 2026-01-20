@@ -1,23 +1,20 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+
+// ✅ En local carga .env, en Railway se usan Variables
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config();
+}
+
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value || value.trim().length === 0) {
+    throw new Error(`Falta la variable de entorno ${name}`);
+  }
+  return value.trim();
+}
 
 export const settings = {
-  token: process.env.DISCORD_TOKEN ?? "",
-  prefix: process.env.PREFIX ?? "!",
-  headAdminId: process.env.HEAD_ADMIN_ID ?? "",
-  approvalChannelId: process.env.APPROVAL_CHANNEL_ID ?? ""
+  discordToken: requireEnv("DISCORD_TOKEN"),
+  prefix: process.env.PREFIX?.trim() || "!",
+  approvalChannelId: process.env.APPROVAL_CHANNEL_ID?.trim() || ""
 };
-
-if (!settings.token) {
-  throw new Error("Falta DISCORD_TOKEN en .env");
-}
-if (!settings.headAdminId) {
-  throw new Error("Falta HEAD_ADMIN_ID en .env");
-}
-
-/**
- * Whitelist de admins autorizados a solicitar XP.
- * Puedes agregar IDs aquí.
- */
-export const ADMIN_WHITELIST: string[] = [
-  // "123456789012345678",
-];
