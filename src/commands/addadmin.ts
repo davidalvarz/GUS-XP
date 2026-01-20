@@ -1,11 +1,9 @@
-import { addStaff, isHeadAdmin } from "../services/staff.service";
+import { requireHeadAdmin } from "../utils/guards";
+import { addAdmin } from "../services/staff.service";
 
 export async function cmdAddAdmin(message: any) {
-  const ok = await isHeadAdmin(message.author.id);
-  if (!ok) {
-    await message.reply("❌ No tienes permisos. Solo Head-Admins pueden agregar Admins.");
-    return;
-  }
+  const ok = await requireHeadAdmin(message);
+  if (!ok) return;
 
   const target = message.mentions.users.first();
   if (!target) {
@@ -13,6 +11,6 @@ export async function cmdAddAdmin(message: any) {
     return;
   }
 
-  await addStaff(target.id, "ADMIN");
-  await message.reply(`✅ ${target.username} ahora es **ADMIN**.`);
+  await addAdmin(target.id);
+  await message.reply(`✅ <@${target.id}> fue agregado como **ADMIN**.`);
 }

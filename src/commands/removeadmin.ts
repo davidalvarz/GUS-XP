@@ -1,11 +1,9 @@
-import { isHeadAdmin, removeStaff, getStaffRole } from "../services/staff.service";
+import { requireHeadAdmin } from "../utils/guards";
+import { removeAdmin, getStaffRole } from "../services/staff.service";
 
 export async function cmdRemoveAdmin(message: any) {
-  const ok = await isHeadAdmin(message.author.id);
-  if (!ok) {
-    await message.reply("❌ No tienes permisos. Solo Head-Admins pueden remover Admins.");
-    return;
-  }
+  const ok = await requireHeadAdmin(message);
+  if (!ok) return;
 
   const target = message.mentions.users.first();
   if (!target) {
@@ -14,16 +12,17 @@ export async function cmdRemoveAdmin(message: any) {
   }
 
   const role = await getStaffRole(target.id);
+
   if (!role) {
-    await message.reply("⚠️ Ese usuario no está registrado como staff.");
+    await message.reply(`⚠️ <@${target.id}> no está registrado en el staff.`);
     return;
   }
 
-  if (role !== "ADMIN") {
-    await message.reply("⚠️ Ese usuario no es ADMIN (o es Head-Admin).");
+  if (role === "HEAD_ADMIN") {
+    await message.reply(`⚠️ <@${target.id}> es **HEAD-ADMIN**. Usa \`!removehead-admin\`.`);
     return;
   }
 
-  await removeStaff(target.id);
-  await message.reply(`✅ ${target.username} fue removido de **ADMIN**.`);
+  await removeAdmin(target.id);
+  await message.reply(`✅ <@${target.id}> fue removido de **ADMIN**.`);
 }
