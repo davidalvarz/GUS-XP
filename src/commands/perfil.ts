@@ -4,8 +4,9 @@ import { getRankInfoByXp } from "../utils/ranks";
 import {
   getRobloxUserIdByUsername,
   getRobloxGroupsByUserId,
-  robloxAvatarHeadshotUrl
+  getRobloxAvatarHeadshot
 } from "../services/roblox.service";
+
 
 function makeXpBar(current: number, max: number, size = 12) {
   const safeMax = Math.max(1, max);
@@ -124,8 +125,10 @@ export async function cmdPerfil(message: any) {
       .setTimestamp(new Date());
 
     if (robloxUserId) {
-      embed.setThumbnail(robloxAvatarHeadshotUrl(robloxUserId));
-    }
+  const avatarUrl = await getRobloxAvatarHeadshot(robloxUserId);
+  if (avatarUrl) embed.setThumbnail(avatarUrl);
+}
+
 
     await message.reply({ embeds: [embed] });
   } catch (err) {

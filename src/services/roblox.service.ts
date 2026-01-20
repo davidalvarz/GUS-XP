@@ -4,18 +4,18 @@ type RobloxUserIdResponse = {
 
 type RobloxGroupsResponse = {
   data: Array<{
-    group: {
-      id: number;
-      name: string;
-      memberCount?: number;
-    };
-    role: {
-      id: number;
-      name: string;
-      rank: number;
-    };
+    group: { id: number; name: string };
+    role: { id: number; name: string; rank: number };
     isPrimaryGroup?: boolean;
     isOwner?: boolean;
+  }>;
+};
+
+type RobloxThumbnailsResponse = {
+  data: Array<{
+    targetId: number;
+    state: string;
+    imageUrl: string;
   }>;
 };
 
@@ -36,7 +36,6 @@ function withTimeout(ms: number) {
 
 export async function getRobloxUserIdByUsername(username: string): Promise<number | null> {
   const url = "https://users.roblox.com/v1/usernames/users";
-
   const { controller, timeout } = withTimeout(6000);
 
   try {
@@ -54,9 +53,7 @@ export async function getRobloxUserIdByUsername(username: string): Promise<numbe
 
     const json = (await res.json()) as RobloxUserIdResponse;
     const first = json?.data?.[0];
-
-    if (!first?.id) return null;
-    return first.id;
+    return first?.id ?? null;
   } catch {
     return null;
   } finally {
@@ -66,7 +63,6 @@ export async function getRobloxUserIdByUsername(username: string): Promise<numbe
 
 export async function getRobloxGroupsByUserId(userId: number): Promise<RobloxGroupInfo[]> {
   const url = `https://groups.roblox.com/v1/users/${userId}/groups/roles`;
-
   const { controller, timeout } = withTimeout(6000);
 
   try {
@@ -96,7 +92,28 @@ export async function getRobloxGroupsByUserId(userId: number): Promise<RobloxGro
   }
 }
 
-export function robloxAvatarHeadshotUrl(userId: number) {
-  // Headshot (cara) de Roblox
-  return `https://www.roblox.com/headshot-thumbnail/image?userId=${userId}&width=420&height=420&format=png`;
+/**
+ * ✅ Avatar Headshot oficial (URL directa para Discord)
+ */
+export async function getRobloxAvatarHeadshot(userId: number): Promise<string | null> {
+  const url = `https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=420x420&format=Png&isCircular=false`;
+  const { controller, timeout } = withTimeout(6000);
+
+  try {
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      signal: controller.signal
+    });
+
+    if (!res.ok) return null;
+
+    const json = (await res.json()) as RobloxThumbnailsResponse;
+    const img = json?.data?.[0]?.imageUrl;
+    return img ?? null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
