@@ -1,6 +1,6 @@
+import { seedFirstHeadAdmin } from "./services/staff.service";
 import "dotenv/config";
 import { Client, GatewayIntentBits, Partials } from "discord.js";
-
 import { settings } from "./config/settings";
 import { handleMessage } from "./handlers/message.handler";
 import { handleInteraction } from "./handlers/interaction.handler";
@@ -25,11 +25,14 @@ const client = new Client({
 });
 
 // ✅ Evento Ready
-client.once("ready", () => {
+client.once("ready", async () => {
   console.log("✅ Bot conectado correctamente.");
   console.log(`🤖 Sesión iniciada como: ${client.user?.tag}`);
   console.log(`📌 Prefix configurado: ${settings.prefix}`);
+
+  await seedFirstHeadAdmin();
 });
+
 
 // ✅ Captura de mensajes (comandos)
 client.on("messageCreate", async (message) => {

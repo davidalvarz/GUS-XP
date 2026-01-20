@@ -1,6 +1,5 @@
 import dotenv from "dotenv";
 
-// ✅ En local carga .env, en Railway se usan Variables
 if (process.env.NODE_ENV !== "production") {
   dotenv.config();
 }
@@ -15,6 +14,8 @@ function requireEnv(name: string): string {
 
 export const settings = {
   discordToken: requireEnv("DISCORD_TOKEN"),
+  databaseUrl: requireEnv("DATABASE_URL"),
   prefix: process.env.PREFIX?.trim() || "!",
-  approvalChannelId: process.env.APPROVAL_CHANNEL_ID?.trim() || ""
+  approvalChannelId: process.env.APPROVAL_CHANNEL_ID?.trim() || "",
+  ownerId: process.env.OWNER_ID?.trim() || ""
 };

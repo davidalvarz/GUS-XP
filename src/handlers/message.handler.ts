@@ -8,6 +8,7 @@ import { cmdRemoveXp } from "../commands/removexp";
 import { cmdSetGeneral } from "../commands/setgeneral";
 import { cmdAyuda } from "../commands/ayuda";
 import { cmdRemoveGeneral } from "../commands/removegeneral";
+import { cmdStaffList } from "../commands/stafflist";
 
 
 // Staff management (Head-Admin only)
@@ -69,6 +70,9 @@ export async function handleMessage(client: any, message: any) {
 
   // ✅ Switch con ejecución segura
   switch (command) {
+    case "stafflist":
+      return runCommandSafely(command, message, async () => cmdStaffList(message));
+
     case "ayuda":
       return runCommandSafely(command, message, async () => cmdAyuda(message));
 

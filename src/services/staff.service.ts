@@ -1,39 +1,51 @@
 import { prisma } from "../db/prisma";
+import { settings } from "../config/settings";
 
-export type StaffRole = "ADMIN" | "HEAD_ADMIN";
+export async function isHeadAdmin(discordId: string): Promise<boolean> {
+  // ✅ OWNER_ID siempre tiene permisos supremos
+  if (settings.ownerId && discordId === settings.ownerId) return true;
 
-export async function addStaff(discordId: string, role: StaffRole) {
-  return prisma.staffMember.upsert({
-    where: { discordId },
-    create: { discordId, role },
-    update: { role }
+  const staff = await prisma.staffMember.findUnique({
+    where: { discordId }
   });
-}
 
-export async function removeStaff(discordId: string) {
-  return prisma.staffMember.delete({ where: { discordId } }).catch(() => null);
-}
-
-export async function getStaffRole(discordId: string): Promise<StaffRole | null> {
-  const staff = await prisma.staffMember.findUnique({ where: { discordId } });
-  return (staff?.role as StaffRole) ?? null;
+  return staff?.role === "HEAD_ADMIN";
 }
 
 export async function isAdmin(discordId: string): Promise<boolean> {
-  const role = await getStaffRole(discordId);
-  return role === "ADMIN" || role === "HEAD_ADMIN";
-}
+  // ✅ OWNER_ID también cuenta como admin
+  if (settings.ownerId && discordId === settings.ownerId) return true;
 
-export async function isHeadAdmin(discordId: string): Promise<boolean> {
-  const role = await getStaffRole(discordId);
-  return role === "HEAD_ADMIN";
-}
-
-export async function listHeadAdmins(): Promise<string[]> {
-  const heads = await prisma.staffMember.findMany({
-    where: { role: "HEAD_ADMIN" },
-    select: { discordId: true }
+  const staff = await prisma.staffMember.findUnique({
+    where: { discordId }
   });
 
-  return heads.map((h: { discordId: string }) => h.discordId);
+  return staff?.role === "ADMIN" || staff?.role === "HEAD_ADMIN";
+}
+
+/**
+ * ✅ Seed: si NO hay Head-Admins en DB, crea uno (OWNER_ID)
+ * Esto solo corre 1 vez y queda persistido.
+ */
+export async function seedFirstHeadAdmin() {
+  if (!settings.ownerId) return;
+
+  const count = await prisma.staffMember.count({
+    where: { role: "HEAD_ADMIN" }
+  });
+
+  if (count > 0) return;
+
+  await prisma.staffMember.upsert({
+    where: { discordId: settings.ownerId },
+    create: {
+      discordId: settings.ownerId,
+      role: "HEAD_ADMIN"
+    },
+    update: {
+      role: "HEAD_ADMIN"
+    }
+  });
+
+  console.log(`✅ Seed completado: OWNER_ID agregado como HEAD_ADMIN (${settings.ownerId})`);
 }
