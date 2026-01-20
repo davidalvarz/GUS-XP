@@ -30,7 +30,7 @@ client.once("ready", async () => {
   console.log(`🤖 Sesión iniciada como: ${client.user?.tag}`);
   console.log(`📌 Prefix configurado: ${settings.prefix}`);
 
-  await seedFirstHeadAdmin();
+  await seedFirstHeadAdmin(); // ✅ te convierte en Head-Admin supremo si la DB está vacía
 });
 
 

@@ -1,13 +1,12 @@
 import { EmbedBuilder } from "discord.js";
 import { prisma } from "../db/prisma";
 import { requireHeadAdmin } from "../utils/guards";
+import { settings } from "../config/settings";
 
 export async function cmdStaffList(message: any) {
-  // ✅ Solo Head-Admins
   const ok = await requireHeadAdmin(message);
   if (!ok) return;
 
-  // ✅ Traer todo el staff
   const staff = await prisma.staffMember.findMany({
     orderBy: { createdAt: "asc" },
     select: { discordId: true, role: true }
@@ -20,6 +19,11 @@ export async function cmdStaffList(message: any) {
   const admins = staff
     .filter((s) => s.role === "ADMIN")
     .map((s) => s.discordId);
+
+  // ✅ aseguramos que el OWNER aparezca SIEMPRE
+  if (settings.ownerId && !headAdmins.includes(settings.ownerId)) {
+    headAdmins.unshift(settings.ownerId);
+  }
 
   const embed = new EmbedBuilder()
     .setTitle("📋 Staff List - GUS XP")
