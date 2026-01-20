@@ -7,6 +7,8 @@ import { cmdAddXp } from "../commands/addxp";
 import { cmdRemoveXp } from "../commands/removexp";
 import { cmdSetGeneral } from "../commands/setgeneral";
 import { cmdAyuda } from "../commands/ayuda";
+import { cmdRemoveGeneral } from "../commands/removegeneral";
+
 
 // Staff management (Head-Admin only)
 import { cmdAddAdmin } from "../commands/addadmin";
@@ -84,6 +86,9 @@ export async function handleMessage(client: any, message: any) {
 
     case "setgeneral":
       return runCommandSafely(command, message, async () => cmdSetGeneral(message, args));
+      case "removegeneral":
+  return runCommandSafely(command, message, async () => cmdRemoveGeneral(message));
+
 
     case "addadmin":
       return runCommandSafely(command, message, async () => cmdAddAdmin(message));
