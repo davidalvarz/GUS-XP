@@ -1,28 +1,45 @@
-import { parseAmount } from "../utils/parse";
-import { createApprovalRequest } from "../services/approval.service";
+import { createApprovalRequest, buildApprovalButtons, buildHeadAdminPingText } from "../services/approval.service";
 import { isAdmin } from "../services/staff.service";
 
 export async function cmdRemoveXp(client: any, message: any, args: string[]) {
   const ok = await isAdmin(message.author.id);
   if (!ok) {
-    await message.reply("❌ No estás autorizado para usar comandos de XP. (Solo Admins)");
+    await message.reply("❌ No tienes permisos para usar este comando.");
     return;
   }
 
   const target = message.mentions.users.first();
   if (!target) {
-    await message.reply("Uso: `!removexp @usuario <cantidad> [razón]`");
+    await message.reply("Uso: `!removexp @usuario <cantidad> [motivo]`");
     return;
   }
 
-  const amount = parseAmount(args[1]);
-  if (amount === null || amount <= 0) {
-    await message.reply("La cantidad debe ser un número entero positivo. Ej: `!removexp @user 25`");
+  const amountRaw = Number(args[1]);
+  if (!amountRaw || isNaN(amountRaw) || amountRaw <= 0) {
+    await message.reply("❌ Cantidad inválida. Ejemplo: `!removexp @usuario 30 sanción`");
     return;
   }
 
-  const reason = args.slice(2).join(" ").trim() || undefined;
+  const reason = args.slice(2).join(" ").trim() || "Sin motivo";
 
-  await createApprovalRequest(client, message.author.id, target.id, amount, "REMOVE", reason);
-  await message.reply("✅ Solicitud enviada a Head-Admins para aprobación.");
+  // ✅ Para remover XP, guardamos amount negativo
+  const req = await createApprovalRequest({
+    requestedById: message.author.id,
+    targetUserId: target.id,
+    amount: -amountRaw,
+    reason
+  });
+
+  const pingText = await buildHeadAdminPingText();
+
+  await message.reply({
+    content:
+      `📩 Solicitud de **QUITAR XP** creada.\n` +
+      `👤 Admin: <@${message.author.id}>\n` +
+      `🎯 Usuario: <@${target.id}>\n` +
+      `📉 XP: **-${amountRaw}**\n` +
+      `📝 Motivo: **${reason}**\n\n` +
+      `${pingText}`,
+    components: buildApprovalButtons(req.id)
+  });
 }

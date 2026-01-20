@@ -8,34 +8,44 @@ datasource db {
 }
 
 model UserProfile {
-  id            String  @id @default(cuid())
-  discordId     String  @unique
-  xp            Int     @default(0)
-
-  robloxUserId  String?
-  robloxName    String?
-
-  isGeneral     Boolean @default(false)
-  generalRank   String?
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
-model PendingXpRequest {
-  id           String   @id @default(cuid())
-  requesterId  String
-  targetId     String
-  amount       Int
-  type         String   // "ADD" | "REMOVE"
-  reason       String?
-  status       String   @default("PENDING") // PENDING | APPROVED | REJECTED
-  createdAt    DateTime @default(now())
+  id             String   @id @default(cuid())
+  discordId      String   @unique
+  xp             Int      @default(0)
+  robloxUsername String?  @default("")
+  isGeneral      Boolean  @default(false)
+  generalRank    String?  @default("")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 model StaffMember {
-  id        String   @id @default(cuid())
-  discordId String   @unique
-  role      String   // "ADMIN" | "HEAD_ADMIN"
-  createdAt DateTime @default(now())
+  id        String    @id @default(cuid())
+  discordId String    @unique
+  role      StaffRole @default(ADMIN)
+  createdAt DateTime  @default(now())
+ updatedAt DateTime @default(now()) @updatedAt
+}
+
+enum StaffRole {
+  ADMIN
+  HEAD_ADMIN
+}
+
+model ApprovalRequest {
+  id            String         @id @default(cuid())
+  requestedById String
+  targetUserId  String
+  amount        Int
+  reason        String?        @default("")
+  status        ApprovalStatus @default(PENDING)
+  reviewedById  String?        @default("")
+  reviewedAt    DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  DENIED
 }

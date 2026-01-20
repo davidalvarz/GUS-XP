@@ -1,19 +1,19 @@
 import { CAREER_RANKS } from "../config/ranks";
 
-export function getCareerRankFromXp(xp: number) {
-  const sorted = [...CAREER_RANKS].sort((a, b) => a.minXp - b.minXp);
+export function getCareerRankByXp(xp: number) {
+  const total = Math.max(0, xp);
 
-  let current = sorted[0];
-  for (const r of sorted) {
-    if (xp >= r.minXp) current = r;
-    else break;
+  let current = CAREER_RANKS[0];
+  for (const r of CAREER_RANKS) {
+    if (total >= r.minXp) current = r;
   }
 
-  const currentIndex = sorted.findIndex(
-    (r) => r.className === current.className && r.rankName === current.rankName && r.minXp === current.minXp
-  );
+  const currentIndex = CAREER_RANKS.findIndex((r) => r.rank === current.rank);
+  const next = currentIndex >= 0 ? CAREER_RANKS[currentIndex + 1] : undefined;
 
-  const next = sorted[currentIndex + 1] ?? null;
-
-  return { current, next };
+  return {
+    className: current.className,
+    rank: current.rank,
+    nextRank: next?.rank ?? null
+  };
 }

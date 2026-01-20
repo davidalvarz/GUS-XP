@@ -1,47 +1,102 @@
-type RobloxResolveResponse = {
+type RobloxUserIdResponse = {
   data: Array<{ id: number; name: string; displayName: string }>;
 };
 
-type RobloxThumbResponse = {
-  data: Array<{ imageUrl: string }>;
+type RobloxGroupsResponse = {
+  data: Array<{
+    group: {
+      id: number;
+      name: string;
+      memberCount?: number;
+    };
+    role: {
+      id: number;
+      name: string;
+      rank: number;
+    };
+    isPrimaryGroup?: boolean;
+    isOwner?: boolean;
+  }>;
 };
 
-export async function resolveRobloxUser(input: string) {
-  // Acepta username o ID numérico
-  const maybeId = Number(input);
-  if (Number.isFinite(maybeId) && Number.isInteger(maybeId) && maybeId > 0) {
-    const userRes = await fetch(`https://users.roblox.com/v1/users/${maybeId}`);
-    if (!userRes.ok) return null;
-    const user = await userRes.json();
-    return { id: String(user.id), name: user.name as string };
-  }
+export type RobloxGroupInfo = {
+  groupId: number;
+  groupName: string;
+  roleName: string;
+  roleRank: number;
+  isPrimaryGroup?: boolean;
+  isOwner?: boolean;
+};
 
-  const res = await fetch("https://users.roblox.com/v1/usernames/users", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      usernames: [input],
-      excludeBannedUsers: false
-    })
-  });
-
-  if (!res.ok) return null;
-  const data = (await res.json()) as RobloxResolveResponse;
-  if (!data.data?.length) return null;
-
-  const u = data.data[0];
-  return { id: String(u.id), name: u.name };
+function withTimeout(ms: number) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), ms);
+  return { controller, timeout };
 }
 
-export async function getRobloxAvatarHeadshot(userId: string) {
-  const url = `https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${encodeURIComponent(
-    userId
-  )}&size=420x420&format=Png&isCircular=false`;
+export async function getRobloxUserIdByUsername(username: string): Promise<number | null> {
+  const url = "https://users.roblox.com/v1/usernames/users";
 
-  const res = await fetch(url);
-  if (!res.ok) return null;
-  const json = (await res.json()) as RobloxThumbResponse;
+  const { controller, timeout } = withTimeout(6000);
 
-  const first = json.data?.[0];
-  return first?.imageUrl ?? null;
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: controller.signal,
+      body: JSON.stringify({
+        usernames: [username],
+        excludeBannedUsers: true
+      })
+    });
+
+    if (!res.ok) return null;
+
+    const json = (await res.json()) as RobloxUserIdResponse;
+    const first = json?.data?.[0];
+
+    if (!first?.id) return null;
+    return first.id;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+export async function getRobloxGroupsByUserId(userId: number): Promise<RobloxGroupInfo[]> {
+  const url = `https://groups.roblox.com/v1/users/${userId}/groups/roles`;
+
+  const { controller, timeout } = withTimeout(6000);
+
+  try {
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      signal: controller.signal
+    });
+
+    if (!res.ok) return [];
+
+    const json = (await res.json()) as RobloxGroupsResponse;
+    const data = json?.data ?? [];
+
+    return data.map((x) => ({
+      groupId: x.group.id,
+      groupName: x.group.name,
+      roleName: x.role.name,
+      roleRank: x.role.rank,
+      isPrimaryGroup: x.isPrimaryGroup,
+      isOwner: x.isOwner
+    }));
+  } catch {
+    return [];
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+export function robloxAvatarHeadshotUrl(userId: number) {
+  // Headshot (cara) de Roblox
+  return `https://www.roblox.com/headshot-thumbnail/image?userId=${userId}&width=420&height=420&format=png`;
 }

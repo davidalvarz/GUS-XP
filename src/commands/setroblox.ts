@@ -1,24 +1,34 @@
 import { prisma } from "../db/prisma";
-import { resolveRobloxUser } from "../services/roblox.service";
+import { getRobloxUserIdByUsername } from "../services/roblox.service";
 
-export async function cmdSetRoblox(message: any, args: string[]) {
-  const input = args[0];
-  if (!input) {
-    await message.reply("Uso: `!setroblox <usernameRoblox | userId>`");
+export async function cmdSetRoblox(message: any) {
+  const username = message.content.split(" ").slice(1).join(" ").trim();
+
+  if (!username) {
+    await message.reply("Uso: `!setroblox NOMBRE_DE_ROBLOX`");
     return;
   }
 
-  const rb = await resolveRobloxUser(input);
-  if (!rb) {
-    await message.reply("No pude encontrar ese usuario en Roblox. Verifica el nombre o ID.");
+  // Validamos que Roblox lo encuentre
+  const userId = await getRobloxUserIdByUsername(username);
+  if (!userId) {
+    await message.reply("❌ No pude encontrar ese usuario en Roblox. Revisa el nombre exacto.");
     return;
   }
 
   await prisma.userProfile.upsert({
     where: { discordId: message.author.id },
-    create: { discordId: message.author.id, robloxUserId: rb.id, robloxName: rb.name },
-    update: { robloxUserId: rb.id, robloxName: rb.name }
+    create: {
+      discordId: message.author.id,
+      robloxUsername: username,
+      xp: 0,
+      isGeneral: false,
+      generalRank: ""
+    },
+    update: {
+      robloxUsername: username
+    }
   });
 
-  await message.reply(`✅ Roblox vinculado: **${rb.name}** (ID: ${rb.id})`);
+  await message.reply(`✅ Roblox vinculado correctamente: **${username}** (ID: \`${userId}\`)`);
 }
