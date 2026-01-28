@@ -6,9 +6,8 @@ export const CAREER_RANKS: Array<{
   { className: "Tropas", rank: "Recluta", minXp: 0 },
   { className: "Tropas", rank: "Soldado raso", minXp: 50 },
   { className: "Tropas", rank: "Soldado", minXp: 150 },
-  { className: "Tropas", rank: "Cabo segundo", minXp: 350 },
-  { className: "Tropas", rank: "Cabo", minXp: 650 },
-  { className: "Tropas", rank: "Cabo primero", minXp: 1000 },
+  { className: "Tropas", rank: "Cabo", minXp: 350 },
+  { className: "Tropas", rank: "Cabo primero", minXp: 650 },
 
   { className: "Suboficiales", rank: "Sargento segundo", minXp: 1400 },
   { className: "Suboficiales", rank: "Sargento", minXp: 1900 },
